@@ -25,11 +25,15 @@ wheels/
 *.egg
 MANIFEST
 
-# Virtual Environments - THIS IS IMPORTANT
+# Virtual environments
 .venv/
 venv/
 env/
-test/
+test-token-tokens/
+*.pyc
+__pycache__/
+*.pyo
+*.pyd
 
 # OS-generated files
 .DS_Store
