@@ -1,0 +1,200 @@
+<!-- templates/index.html - THE TEMPLE -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Token Tokens</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700&family=Source+Code+Pro:wght@400&display=swap');
+
+        :root {
+            --bg-color: #111111;
+            --surface-color: #1a1a1a;
+            --border-color: #333333;
+            --text-color: #e0e0e0;
+            --subtle-text-color: #888888;
+            --primary-color: #007bff;
+            --primary-hover-color: #0056b3;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            min-height: 100vh;
+            margin: 0;
+            padding: 40px 20px;
+            box-sizing: border-box;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 900px;
+            background-color: var(--surface-color);
+            padding: 40px;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+        }
+
+        header { text-align: center; margin-bottom: 40px; }
+        h1 { color: #fff; margin-bottom: 5px; }
+        p { color: var(--subtle-text-color); margin-top: 0; }
+
+        .input-section { margin-bottom: 30px; }
+        
+        textarea, input[type="file"] {
+            width: 100%; background-color: var(--bg-color); border: 1px solid var(--border-color);
+            border-radius: 8px; color: var(--text-color); padding: 15px; font-size: 16px;
+            box-sizing: border-box; margin-bottom: 20px;
+        }
+        textarea { height: 150px; resize: vertical; }
+
+        button {
+            width: 100%; background-color: var(--primary-color); color: white; border: none; padding: 15px;
+            border-radius: 8px; font-size: 16px; font-weight: 700; cursor: pointer;
+            transition: background-color 0.2s ease;
+        }
+        button:hover { background-color: var(--primary-hover-color); }
+        button:disabled { background-color: #555; cursor: not-allowed; }
+
+        .stats-panel {
+            display: flex; gap: 20px; background-color: var(--bg-color);
+            padding: 20px; border-radius: 8px; margin-bottom: 20px;
+            border: 1px solid var(--border-color);
+        }
+        .stat { flex-grow: 1; text-align: center; }
+        .stat-value { font-size: 28px; font-weight: 700; color: #fff; }
+        .stat-label { font-size: 12px; color: var(--subtle-text-color); text-transform: uppercase; }
+
+        .tokens-output {
+            background-color: var(--bg-color); border: 1px solid var(--border-color);
+            border-radius: 8px; padding: 20px; min-height: 100px; line-height: 2;
+            word-wrap: break-word; font-family: 'Source Code Pro', monospace;
+        }
+        .token {
+            display: inline-block; padding: 2px 6px; margin: 2px; border-radius: 4px; color: #fff;
+            white-space: pre-wrap;
+        }
+        .token:nth-child(5n+1) { background-color: #2a3a5e; }
+        .token:nth-child(5n+2) { background-color: #4a2a5e; }
+        .token:nth-child(5n+3) { background-color: #5e2a3a; }
+        .token:nth-child(5n+4) { background-color: #2a5e3a; }
+        .token:nth-child(5n+5) { background-color: #5e4a2a; }
+
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <header>
+            <h1>Token Tokens</h1>
+            <p>Understand your OpenAI GPT-4 API costs before you spend a dime.</p>
+        </header>
+
+        <!-- SHARED RESULTS PANEL -->
+        <div class="stats-panel">
+            <div class="stat">
+                <div id="token-count" class="stat-value">0</div>
+                <div class="stat-label">Token Count</div>
+            </div>
+            <div class="stat">
+                <div id="estimated-cost" class="stat-value">$0.00</div>
+                <div class="stat-label">Estimated Cost (USD)</div>
+            </div>
+        </div>
+
+        <hr style="border-color: var(--border-color); margin: 40px 0;">
+
+        <!-- INPUTS -->
+        <div class="input-section">
+            <textarea id="textInput" placeholder="Paste your text here..."></textarea>
+            <button id="text-button" onclick="processText()">Analyze Text</button>
+        </div>
+        <center><h3>OR</h3></center>
+        <div class="input-section">
+            <input type="file" id="pdfInput" accept=".pdf">
+            <button id="pdf-button" onclick="processPdf()">Analyze PDF</button>
+        </div>
+
+        <div id="tokens-output" class="tokens-output"></div>
+    </div>
+
+    <script>
+        const countEl = document.getElementById('token-count');
+        const costEl = document.getElementById('estimated-cost');
+        const textButton = document.getElementById('text-button');
+        const pdfButton = document.getElementById('pdf-button');
+        const outputEl = document.getElementById('tokens-output');
+
+        function updateUI(data) {
+            if (data.error) {
+                countEl.textContent = 'Error';
+                costEl.textContent = '$--';
+                outputEl.textContent = data.error;
+                return;
+            }
+            countEl.textContent = data.token_count.toLocaleString();
+            costEl.textContent = `$${data.estimated_cost_usd.toFixed(6)}`;
+            
+            outputEl.innerHTML = ''; // Clear previous results
+            data.decoded_tokens.forEach(tokenText => {
+                const tokenElement = document.createElement('span');
+                tokenElement.className = 'token';
+                tokenElement.textContent = tokenText;
+                outputEl.appendChild(tokenElement);
+            });
+        }
+
+        function setLoadingState(isLoading) {
+            if (isLoading) {
+                countEl.textContent = '...';
+                costEl.textContent = '...';
+                outputEl.innerHTML = '';
+                textButton.disabled = true;
+                pdfButton.disabled = true;
+            } else {
+                textButton.disabled = false;
+                pdfButton.disabled = false;
+            }
+        }
+
+        async function processText() {
+            const text = document.getElementById('textInput').value;
+            if (!text) return;
+
+            setLoadingState(true);
+            const response = await fetch('/process_text', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ text_to_tokenize: text }),
+            });
+            const data = await response.json();
+            updateUI(data);
+            setLoadingState(false);
+        }
+
+        async function processPdf() {
+            const fileInput = document.getElementById('pdfInput');
+            if (fileInput.files.length === 0) {
+                alert("Please select a PDF file first!");
+                return;
+            }
+            setLoadingState(true);
+            const formData = new FormData();
+            formData.append('file', fileInput.files[0]);
+
+            const response = await fetch('/process_pdf', {
+                method: 'POST',
+                body: formData,
+            });
+            const data = await response.json();
+            updateUI(data);
+            setLoadingState(false);
+        }
+    </script>
+</body>
+</html>
