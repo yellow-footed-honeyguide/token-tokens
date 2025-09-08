@@ -13,16 +13,40 @@ Built with FastAPI and Tiktoken, this tool visualizes token count, estimated cos
 
 ## Setup
 
-1.  Clone the repository.
-2.  Install the required packages:
-    ```bash
-    pip install -r requirements.txt
-    ```
+Setup
+1. Install Poetry.
+2. Clone the repository:
+```bash
+git clone https://github.com/your-username/token-tokens.git
+cd token-tokens
+```
+3. Install the dependencies:
+```bash
+poetry install
+```
+
+Clone the repository:
 
 ## Run
 
-1.  Start the server from the project's root directory:
+1.  Start the server:
     ```bash
-    uvicorn main:app --reload
+    poetry run uvicorn main:app --reload
     ```
-2.  Open your browser and navigate to `http://127.0.0.1:8000`.
+2.  Open your browser and navigate to http://127.0.0.1:8000.
+
+## Contributing
+
+Contributions to the File Information Utility are welcome! Please feel free to submit a Pull Request.
+
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+
+## Author
+
+**Sergey Veneckiy**
+- Email: s.venetsky@gmail.com
+- GitHub: [@yellow-footed-honeyguide](https://github.com/yellow-footed-honeyguide)
